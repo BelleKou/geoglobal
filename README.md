@@ -15,7 +15,7 @@ E-commerce platforms serving global markets face a critical latency gap: origin 
 
 Moved geo-aware decision logic to Cloudflare's edge network — 300+ nodes globally. Instead of round-tripping to a central server, localization, currency conversion, and pricing rules are resolved at the node closest to the user, cutting response time to <50ms regardless of location.
 
-**Technical Advantage:** Reduces perceived first-screen latency by 40-80% compared to traditional SSR. Designed for zero single points of failure — if exchange rate APIs go down, static fallback rates kick in automatically. If IP detection fails, user preference takes over. The system degrades gracefully, never breaks.
+**Technical Advantage:** Significantly reduces first-screen latency for global users by resolving logic at the edge, skipping the traditional origin server round-trip.
 
 ---
 
@@ -96,16 +96,3 @@ npx wrangler kv key put --binding=GEO_CONFIG "discount:CN" "15"
 | CF Workers vs Lambda@Edge | ~0ms cold start, native geo data, no IP library needed vs Lambda@Edge 50-500ms cold start |
 
 ---
-
-## Resume Bullets
-
-**System Design focus (SWE / MLE):**
-- Built an open-source Edge Localization Engine on Cloudflare Workers, reducing APAC latency from ~400ms to <50ms by moving geo-aware decision logic to 300+ edge nodes globally
-- Implemented three-tier graceful degradation (IP detection → user preference override → static fallback), achieving 100% availability under third-party API failure scenarios
-- Designed config-driven country table supporting 10+ markets; adding a new market requires one line of config, zero core logic changes
-- Open-sourced as a reusable infrastructure template; optional KV integration enables real-time per-country discount control without redeployment
-
-**Product / Impact focus (PM / APM):**
-- Identified APAC conversion rate drop caused by high-latency US-origin servers; architected and shipped an edge-based localization tool reducing perceived load time by 40-80%
-- Designed for extensibility: adding a new market requires one line of config, not a redeployment
-- Built optional remote discount config via Cloudflare KV, enabling ops teams to update regional pricing in <1s without engineering involvement
