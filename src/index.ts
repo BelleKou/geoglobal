@@ -57,6 +57,8 @@ export interface Env {}
   
   export default {
 	async fetch(request: Request): Promise<Response> {
+		const url = new URL(request.url);
+if (url.pathname !== "/api") return new Response(null, { status: 404 });
 	  // Handle CORS preflight
 	  if (request.method === "OPTIONS") {
 		return new Response(null, { headers: CORS_HEADERS });
