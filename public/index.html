@@ -1,37 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Geo Context Engine</title>
+    <meta charset="UTF-8">
+    <title>GeoContext Engine</title>
+    <style>
+        :root { --bg: #ffffff; --text: #1a1a1a; --code-bg: #f4f4f4; }
+        @media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --text: #c9d1d9; --code-bg: #161b22; } }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+               line-height: 1.6; max-width: 600px; margin: 40px auto; padding: 0 20px; background: var(--bg); color: var(--text); }
+        select { width: 100%; padding: 10px; border: 1px solid #30363d; border-radius: 6px; background: var(--code-bg); color: var(--text); font-size: 16px; margin-bottom: 20px; }
+        pre { background: var(--code-bg); padding: 16px; border-radius: 6px; overflow: auto; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 13px; border: 1px solid #30363d; }
+        .footer { margin-top: 40px; font-size: 12px; color: #8b949e; border-top: 1px solid #30363d; padding-top: 20px; }
+        a { color: #58a6ff; text-decoration: none; }
+    </style>
 </head>
 <body>
-  <select id="country">
-    <option value="">Auto (IP)</option>
-    <option value="CN">China</option>
-    <option value="US">United States</option>
-    <option value="GB">United Kingdom</option>
-    <option value="JP">Japan</option>
-    <option value="DE">Germany</option>
-    <option value="SG">Singapore</option>
-    <option value="AU">Australia</option>
-    <option value="CA">Canada</option>
-  </select>
-  <pre id="app">Loading...</pre>
-
-  <script>
-    const select = document.getElementById('country');
-    select.value = localStorage.getItem('userCountry') || '';
-
-    function load() {
-      const override = select.value;
-      localStorage.setItem('userCountry', override);
-      const headers = override ? { 'X-User-Country': override } : {};
-      fetch('/api', { headers })
-        .then(r => r.json())
-        .then(d => document.getElementById('app').innerText = JSON.stringify(d, null, 2));
-    }
-
-    select.addEventListener('change', load);
-    load();
-  </script>
+    <h2>GeoContext Engine</h2>
+    <p style="font-size: 14px; color: #8b949e;">Edge-native geolocation & currency intelligence.</p>
+    <select id="country">
+        <option value="">Detecting Location (IP)...</option>
+        <option value="US">United States</option>
+        <option value="CN">China</option>
+        <option value="GB">United Kingdom</option>
+        <option value="JP">Japan</option>
+        <option value="SG">Singapore</option>
+    </select>
+    <pre id="app">Loading payload...</pre>
+    <div class="footer">
+        Built with Cloudflare Workers • 
+        <a href="https://github.com/BelleKou/geoglobal" target="_blank">Source & Stars</a>
+    </div>
+    <script>
+        const select = document.getElementById('country');
+        const app = document.getElementById('app');
+        select.value = localStorage.getItem('userCountry') || '';
+        async function fetchContext() {
+            const override = select.value;
+            localStorage.setItem('userCountry', override);
+            const headers = override ? { 'X-User-Country': override } : {};
+            
+            try {
+                // 替换为你真实的 Worker URL
+                const r = await fetch('/api', { headers });
+                const d = await r.json();
+                app.innerText = JSON.stringify(d, null, 4);
+            } catch (e) {
+                app.innerText = "// Worker link missing or offline";
+            }
+        }
+        select.addEventListener('change', fetchContext);
+        fetchContext();
+    </script>
 </body>
 </html>
