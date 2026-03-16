@@ -43,11 +43,13 @@ Moved geo-aware decision logic to Cloudflare's edge network — 300+ nodes globa
 Returns full geo context for the current user.
 
 Supports user preference override via header:
+
 ```
 X-User-Country: CN
 ```
 
 **Response example:**
+
 ```json
 {
   "country": "CN",
@@ -65,10 +67,16 @@ X-User-Country: CN
 
 ## Quickstart
 
+**Prerequisites:** Node.js 18+, Cloudflare account (free tier works)
+
 ```bash
+git clone https://github.com/BelleKou/geoglobal.git
+cd geoglobal
 npm install
 npx wrangler dev
 ```
+
+Open `http://localhost:8787/api` — you'll see your geo context returned in under 50ms.
 
 ## Deploy
 
@@ -92,7 +100,36 @@ npx wrangler kv key put --binding=GEO_CONFIG "discount:CN" "15"
 | In-memory rate cache | Reduces external API calls, eliminates hard dependency on third-party uptime |
 | Three-tier fallback | Any single point of failure must not affect user-side rendering |
 | Config-driven country table | New market = one line of config, zero core logic changes |
-| Optional KV discounts | Decouples pricing strategy from code — enable only when needed |
+| Optional KV discounts | Decouples pricing strategy from code — enable only when needed; allows non-technical teams to update regional pricing in real time without redeployment |
 | CF Workers vs Lambda@Edge | ~0ms cold start, native geo data, no IP library needed vs Lambda@Edge 50-500ms cold start |
 
+## Why Cloudflare Workers?
+
+Evaluated three options before building:
+
+| Option | Cold Start | Global Nodes | Native Geo Data | KV Storage | Verdict |
+|--------|-----------|--------------|-----------------|------------|---------|
+| **Cloudflare Workers** | ~0ms | 330+ | ✅ Built-in | ✅ Native | ✅ Chosen |
+| Lambda@Edge | 50-500ms | ~50 | ❌ Needs library | ❌ Needs DynamoDB | ❌ Too slow |
+| Fastly Compute | ~5ms | 60+ | ❌ Needs library | ❌ Separate setup | ❌ Smaller network |
+
+Cloudflare Workers was the only option with native geo data, near-zero cold start, built-in KV storage for remote discount config, and a global network large enough to serve APAC users consistently under 50ms — without any third-party dependencies.
+
 ---
+
+## Roadmap
+
+- [ ] Interactive analytics dashboard — visualize real-time geo distribution of your users
+- [ ] A/B testing hooks — run regional pricing experiments natively at the edge
+- [ ] Multi-CDN fallback — support Fastly and CloudFront as backup providers
+- [ ] Webhook support — trigger real-time discount updates without redeployment
+
+---
+
+## Contributing
+
+PRs welcome. Open an issue first for major changes.
+
+## License
+
+MIT
